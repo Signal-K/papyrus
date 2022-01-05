@@ -11,7 +11,7 @@ import { client } from '../client'; // Sanity client
 
 const Login = () => {
     const navigate = useNavigate();
-    const responseGoogle = (responnse) => {
+    const responseGoogle = (response) => {
         localStorage.setItem('user', JSON.stringify(response.profileObj));
 
         const  { name, googleId, imageUrl } = response.profileObj; // Set these values to the local storage
