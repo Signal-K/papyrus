@@ -61,7 +61,8 @@ const Sidebar = ({ user, closeToggle }) => {
                 // If user is logged in, show the user's profile and logout button (only show this content if user exists & is logged in)
                 <Link
                     to={`user-profile/${user._id}`}
-                    className="flex my-5 mb-3 gap-2"
+                    className="flex my-5 mb-3 gap-2 items-center bg-white rounded-lg shadow-lg mx-3"
+                    onClick={handleCloseSidebar} // Close sidebar when user clicks on their profile/menu item
                 >
                     <img src={user.image} className="w-10 h-10 rounded-full" alt="user-profile"/>
                     <p>{user.userName}</p>
