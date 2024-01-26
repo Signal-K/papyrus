@@ -1,14 +1,16 @@
 from flask import Flask, jsonify, request
 from supabase_py import create_client
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://postgres.qw"
 # db.init_app(app)
 
 # Create Supabase client
-
-
+SUPABASE_URL = 'https://qwbufbmxkjfaikoloudl.supabase.co'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3YnVmYm14a2pmYWlrb2xvdWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njk5NDE3NTksImV4cCI6MTk4NTUxNzc1OX0.RNz5bvsVwLvfYpZtUjy0vBPcho53_VS2AIVzT8Fm-lk'
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 itemList = { # This should be automated in the `/items` route later
@@ -63,15 +65,17 @@ def craft_structure():
     for item_id, quantity_needed in items_needed:
         if item_id not in items_available or items_available[item_id] < quantity_needed:
             return jsonify({'status': 'fail', 'message': f'Insufficient {itemList[item_id]["name"]}'}), 400
-    
+
+    """
     # If the user has the required items, deduct them from the inventory
     for item_id, quantity_needed in items_needed:
-        # Reduce the quantity of the item in the inventory
+    # Reduce the quantity of the item in the inventory
         for item in user_inventory['data']:
             if item['item'] == item_id:
                 remaining_quantity = item['quantity'] - quantity_needed
-                supabase.table('inventoryUSERS').update({'quantity': remaining_quantity}).eq('owner', user_id).and_('item', '=', item_id).execute()
+                supabase.table('inventoryUSERS').update({'quantity': remaining_quantity}).eq('owner', user_id).eq('item', item_id).execute()
                 break
+    """
     
     # Add the crafted structure to the user's inventory
     supabase.table('inventoryUSERS').insert({'item': structure_id, 'owner': user_id, 'quantity': 1}).execute()
