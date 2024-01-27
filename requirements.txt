@@ -3,3 +3,4 @@ gunicorn>=20.1.0
 lightkurve
 supabase_py
 flask_cors
+supabase-py==2.3.5
