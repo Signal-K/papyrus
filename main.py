@@ -47,7 +47,8 @@ def craft_structure():
     data = request.json
     user_id = data.get('user_id')
     structure_id = data.get('structure_id')
-
+    sector_id = data.get('sector_id')  # Added sector ID
+    
     # Retrieve the crafting recipe for the specified structure
     recipe = next((recipe for recipe in crafting_recipes if recipe['output'][0] == structure_id), None)
 
@@ -64,7 +65,7 @@ def craft_structure():
             return jsonify({'status': 'fail', 'message': f'Insufficient {item_list[item_id]["name"]}'}), 400
 
     # Add the crafted structure to the user's inventory
-    supabase.table('inventoryUSERS').insert({'item': structure_id, 'owner': user_id, 'quantity': 1}).execute()
+    supabase.table('inventoryUSERS').insert({'item': structure_id, 'owner': user_id, 'quantity': 1, 'sector': sector_id}).execute()  # Added sector ID
 
     return jsonify({'status': 'proceed', 'message': 'Structure crafted successfully'}), 200
 
