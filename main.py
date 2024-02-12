@@ -1,6 +1,9 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from supabase_py import create_client
 from flask_cors import CORS
+import io
+import matplotlib.pyplot as plt
+import lightkurve as lk
 
 app = Flask(__name__)
 CORS(app)
@@ -68,6 +71,34 @@ def craft_structure():
     supabase.table('inventoryUSERS').insert({'item': structure_id, 'owner': user_id, 'quantity': 1, 'sector': sector_id}).execute()  # Added sector ID
 
     return jsonify({'status': 'proceed', 'message': 'Structure crafted successfully'}), 200
+
+
+# Lightkurve & planet generation, population
+@app.route("/generate_lightcurve_image", methods={"POST"})
+def generate_lightcurve_image():
+    data = request.json
+    tic_id = data.get("tic_id")
+
+    try:
+        # Load the lightcurve
+        lc = lk.search_lightcurvefile(f"TIC {tic_id}").download().PDCSAP_FLUX.to_lightcurve()
+
+        # Plot the lightcurve
+        plt.figure(figsize=(10, 6))
+        lc.plot()
+        plt.title(f"Lightcurve for TIC {tic_id}")
+        plt.xlabel('Time (BJD)')
+        plt.ylabel('Flux')
+
+        # Save the plot to a BytesIO buffer (image)
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+
+        plt.close()
+        return send_file(buffer, mimetype='image/png')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
