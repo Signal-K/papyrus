@@ -1,2 +1,0 @@
-# ShowM3
-Web3 based image/media sharing [social media] platform for web3 projects. Building with different open CMSs to build/design UI/UX (e.g. Sanity) before moving to Enjin & Moralis for deeper integration with [my game](https://github.com/signal-k/marketplace). Allows for your project's web3 components to be deeply integrated in a social media for your users that can even stretch into Discord, Slack, etc (using Matrix) in one beautiful package <!--Apps, widgets, etc-->
