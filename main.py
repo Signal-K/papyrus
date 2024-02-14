@@ -1,12 +1,16 @@
+import atexit
 from flask import Flask, jsonify, request, send_file
 from supabase_py import create_client
 from flask_cors import CORS
 import io
 import matplotlib.pyplot as plt
+import matplotlib
 import lightkurve as lk
+import logging
 
 app = Flask(__name__)
 CORS(app)
+matplotlib.use('Agg')
 
 # Initialize Supabase client
 SUPABASE_URL = 'https://qwbufbmxkjfaikoloudl.supabase.co'
@@ -73,32 +77,29 @@ def craft_structure():
     return jsonify({'status': 'proceed', 'message': 'Structure crafted successfully'}), 200
 
 
-# Lightkurve & planet generation, population
-@app.route("/generate_lightcurve_image", methods={"POST"})
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@app.route('/generate_lightcurve_image', methods=['POST'])
 def generate_lightcurve_image():
-    data = request.json
-    tic_id = data.get("tic_id")
-
     try:
-        # Load the lightcurve
-        lc = lk.search_lightcurvefile(f"TIC {tic_id}").download().PDCSAP_FLUX.to_lightcurve()
+        tic_id = request.json.get('tic_id')
+        if not tic_id:
+            raise ValueError('TIC ID not provided')
 
-        # Plot the lightcurve
-        plt.figure(figsize=(10, 6))
-        lc.plot()
-        plt.title(f"Lightcurve for TIC {tic_id}")
-        plt.xlabel('Time (BJD)')
-        plt.ylabel('Flux')
+        # Download lightcurve and create image
+        lc = lk.search_lightcurve(f"TIC {tic_id}").download().PDCSAP_FLUX
+        ax = lc.plot()
+        image_path = 'lightcurve.png'
+        ax.figure.savefig(image_path)
 
-        # Save the plot to a BytesIO buffer (image)
-        buffer = io.BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
+        # Send image file to the frontend
+        return send_file(image_path, mimetype='image/png')
 
-        plt.close()
-        return send_file(buffer, mimetype='image/png')
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception('Error generating lightcurve image')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
