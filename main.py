@@ -1,9 +1,16 @@
-from flask import Flask, jsonify, request
+import atexit
+from flask import Flask, jsonify, request, send_file
 from supabase_py import create_client
 from flask_cors import CORS
+import io
+import matplotlib.pyplot as plt
+import matplotlib
+import lightkurve as lk
+import logging
 
 app = Flask(__name__)
 CORS(app)
+matplotlib.use('Agg')
 
 # Initialize Supabase client
 SUPABASE_URL = 'https://qwbufbmxkjfaikoloudl.supabase.co'
@@ -68,6 +75,31 @@ def craft_structure():
     supabase.table('inventoryUSERS').insert({'item': structure_id, 'owner': user_id, 'quantity': 1, 'sector': sector_id}).execute()  # Added sector ID
 
     return jsonify({'status': 'proceed', 'message': 'Structure crafted successfully'}), 200
+
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@app.route('/generate_lightcurve_image', methods=['POST'])
+def generate_lightcurve_image():
+    try:
+        tic_id = request.json.get('tic_id')
+        if not tic_id:
+            raise ValueError('TIC ID not provided')
+
+        # Download lightcurve and create image
+        lc = lk.search_lightcurve(f"TIC {tic_id}").download().PDCSAP_FLUX
+        ax = lc.plot()
+        image_path = 'lightcurve.png'
+        ax.figure.savefig(image_path)
+
+        # Send image file to the frontend
+        return send_file(image_path, mimetype='image/png')
+
+    except Exception as e:
+        logger.exception('Error generating lightcurve image')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
