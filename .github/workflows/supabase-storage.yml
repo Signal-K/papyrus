@@ -8,13 +8,13 @@ on:
   workflow_dispatch:
   schedule:
   # Runs twice a day. Once at 8:00, then at 20:00.
-    - cron: '0 8,20 * * *' 
+    - cron: '0 8,20 * * *'
 jobs:
   backup:
     runs-on: ubuntu-latest
     env:
-      SUPABASE_URL: https://qwbufbmxkjfaikoloudl.supabase.co
-      SUPABASE_SERVICE_ROLE: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3YnVmYm14a2pmYWlrb2xvdWRsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY2OTk0MTc1OSwiZXhwIjoxOTg1NTE3NzU5fQ.YEicNFgQ3DolbXQVBRMrbqoJS3qLDEf5TKJ8dphZRRc
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE }}
     permissions:
       contents: write
     steps:
@@ -30,8 +30,8 @@ jobs:
     - name: Install dependencies and perform backup
       run: |
         pip install supabase
-        [[ -d supabase_storage_backup ]] || mkdir supabase_storage_backup
-        cd supabase_storage_backup
+        [[ -d supabase_storage ]] || mkdir supabase_storage
+        cd supabase_storage
         wget https://raw.githubusercontent.com/mansueli/Supa-Migrate/main/storage-backup.py
         chmod +x storage-backup.py
         python storage-backup.py
@@ -49,5 +49,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
           name: Storage-Backup
-          path: ./supabase_storage_backup # <= upload folder
+          path: ./supabase_storage # <= upload folder
           retention-days: 14
